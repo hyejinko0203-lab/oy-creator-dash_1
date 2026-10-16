@@ -1,0 +1,481 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>크리에이터 소재 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --page:#f4f6fa; --surface:#ffffff; --surface-2:#eef2f9; --ink:#10172a; --ink-2:#4a5368; --muted:#8a91a1;
+  --grid:#e3e7ef; --axis:#c3c9d6; --line:rgba(16,23,42,.10);
+  --accent:#27427f; --accent-ink:#ffffff; --accent-soft:#dfe7f6;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300;
+  --good:#006300; --good-bg:#e3f3e3; --idle:#6b7280; --idle-bg:#eceef2;
+  --bar-track:#eef1f6; --sub-bg:#f8fafd; --warn-bg:#fff6e0; --warn-ink:#7a4b00; --warn-line:#f0d08a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --page:#0e1119; --surface:#171b26; --surface-2:#1f2533; --ink:#f3f5fa; --ink-2:#b9c0cf; --muted:#858c9b;
+    --grid:#262c3a; --axis:#394154; --line:rgba(255,255,255,.10);
+    --accent:#8fa9e6; --accent-ink:#0e1119; --accent-soft:#232d45;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300;
+    --good:#4cc764; --good-bg:#16301c; --idle:#a3a9b6; --idle-bg:#252a36; --bar-track:#222838; --sub-bg:#1b2030; --warn-bg:#2e2410; --warn-ink:#f3cf7a; --warn-line:#5a4617;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#0e1119; --surface:#171b26; --surface-2:#1f2533; --ink:#f3f5fa; --ink-2:#b9c0cf; --muted:#858c9b;
+  --grid:#262c3a; --axis:#394154; --line:rgba(255,255,255,.10);
+  --accent:#8fa9e6; --accent-ink:#0e1119; --accent-soft:#232d45;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300;
+  --good:#4cc764; --good-bg:#16301c; --idle:#a3a9b6; --idle-bg:#252a36; --bar-track:#222838; --sub-bg:#1b2030; --warn-bg:#2e2410; --warn-ink:#f3cf7a; --warn-line:#5a4617;
+}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font-family:"IBM Plex Sans KR",system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;font-size:14px;line-height:1.5}
+
+.shell{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;gap:22px}
+.logo{display:flex;align-items:center;gap:10px;padding:0 8px}
+.logo .mk{width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px}
+.logo b{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.logo small{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.04em}
+.navgroup{display:flex;flex-direction:column;gap:4px}
+.navlabel{font-size:11.5px;color:var(--muted);font-weight:600;padding:0 10px 4px}
+.tabs{display:flex;flex-direction:column;gap:2px}
+.tabs a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--ink-2);text-decoration:none;font-weight:500;font-size:14.5px}
+.tabs a .ic{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font-size:11.5px;font-weight:700;background:var(--surface-2);color:var(--ink-2);flex:none}
+.tabs a .tx{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.tabs a .tx small{font-size:11.5px;color:var(--muted);font-weight:400}
+.tabs a:hover{background:var(--surface-2)}
+.tabs a[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.tabs a[aria-current="page"] .ic{background:var(--accent);color:var(--accent-ink)}
+.tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.wrap{max-width:1680px;width:100%;margin:0 auto;padding:24px 24px 56px;display:flex;flex-direction:column;gap:20px;min-width:0}
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .side{position:sticky;height:auto;flex-direction:row;align-items:center;gap:14px;padding:10px 16px;border-right:0;border-bottom:1px solid var(--line);z-index:5;overflow-x:auto}
+  .logo small,.navlabel,.tabs a .tx small{display:none}
+  .navgroup{flex-direction:row}
+  .tabs{flex-direction:row}
+  .tabs a{padding:7px 10px;white-space:nowrap}
+  .wrap{padding:20px 16px 48px}
+}
+@media (min-width:861px) and (max-width:1479px){
+  .shell{grid-template-columns:68px minmax(0,1fr)}
+  .side{padding:18px 10px;align-items:center}
+  .logo{padding:0}
+  .logo > span:last-child,.navlabel,.tabs a .tx{display:none}
+  .tabs a{padding:8px;justify-content:center}
+  .tabs a .ic{width:30px;height:30px;font-size:13px}
+  .wrap{padding:24px 20px 56px}
+}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-size:12px;letter-spacing:.06em;color:var(--muted);font-weight:500}
+h1{margin:2px 0 0;font-size:26px;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.period{font-size:13px;color:var(--ink-2);text-align:right}
+.period b{color:var(--ink);font-weight:600}
+
+.progress{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.progress h2{font-size:15px}
+.warn{background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:500}
+.stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+.empty-state p{margin:0;color:var(--ink-2);font-size:13.5px;max-width:65ch}
+.progress .empty{font-size:13px;color:var(--muted);padding:10px 12px;border:1px dashed var(--axis);border-radius:8px}
+
+.filters{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.flabel{font-size:12px;color:var(--muted);font-weight:500;margin-right:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:13px;padding:6px 14px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13px;padding:5px 11px 5px 9px;border-radius:999px;cursor:pointer}
+.chip .sw{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.chip[aria-pressed="false"]{color:var(--muted);background:transparent}
+.chip[aria-pressed="false"] .sw{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sel{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:96px;cursor:pointer}
+.sel:hover{border-color:var(--accent)}
+.sel:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.linkbtn{border:0;background:none;color:var(--accent);font:inherit;font-size:12px;cursor:pointer;padding:4px 2px}
+
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.kpi{background:var(--surface);padding:14px 16px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpi .v{font-size:21px;font-weight:600;margin-top:2px;white-space:nowrap}
+.kpi .v small{font-size:13px;font-weight:500;color:var(--ink-2);margin-left:2px}
+.kpi.hl{background:var(--accent-soft)}
+
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+h2{margin:0;font-size:17px;font-weight:700}
+.sec-note{font-size:12px;color:var(--muted)}
+h3{margin:0;font-size:13px;font-weight:600;color:var(--ink-2)}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13px}
+thead th{background:var(--accent);color:var(--accent-ink);font-weight:600;padding:8px 8px;text-align:right;white-space:nowrap;font-size:12px;line-height:1.3;vertical-align:middle}
+thead th:first-child,thead th.l{text-align:left}
+tbody td{padding:8px 8px;text-align:right;border-top:1px solid var(--grid);white-space:nowrap;vertical-align:middle}
+tbody td .meta{font-size:11.5px;color:var(--muted);margin-top:3px;font-weight:400;display:flex;align-items:center;gap:4px;white-space:nowrap}
+tbody td .name + .meta{padding-left:18px}
+tbody td .meta .vlink{font-size:11.5px}
+tbody td .meta .pill{margin-left:2px;vertical-align:0}
+tbody td:first-child,tbody td.l{text-align:left}
+tbody tr.total td{background:var(--surface-2);font-weight:600}
+.name{display:inline-flex;align-items:center;gap:8px}
+.name .sw{width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
+tbody td.brandcell{color:var(--ink-2)}
+.sec-tools{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
+.namewrap{display:inline-flex;align-items:center;gap:8px}
+.tg{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink-2);cursor:pointer;display:inline-grid;place-items:center;padding:0;flex:none}
+.tg::before{content:"";width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+.tg[aria-expanded="true"]{background:var(--accent-soft);color:var(--accent)}
+.tg[aria-expanded="true"]::before{transform:rotate(90deg)}
+.tg:hover{border-color:var(--accent)}
+tbody tr.subrow td{background:var(--sub-bg);font-size:12.5px;color:var(--ink-2);border-top:1px dashed var(--grid)}
+.sublabel{display:inline-block;padding-left:28px;font-weight:600;color:var(--ink-2)}
+.sublabel::before{content:"└ ";color:var(--muted);font-weight:400}
+tbody td.period{color:var(--ink-2)}
+tbody td.period .pill{margin-left:6px}
+tbody td .vlink+.vlink{margin-left:8px}
+.sub{color:var(--muted);font-size:12px;margin-left:6px}
+tbody td.note{white-space:nowrap;color:var(--ink-2);font-size:12.5px;line-height:1.45}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px}
+.pill.on{color:var(--good);background:var(--good-bg)}
+.pill.off{color:var(--idle);background:var(--idle-bg)}
+.cellbar{display:inline-flex;align-items:center;gap:8px;justify-content:flex-end}
+.cellbar i{display:block;width:56px;height:6px;border-radius:3px;background:var(--bar-track);position:relative;overflow:hidden}
+.cellbar i::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w);background:var(--c,var(--accent));border-radius:3px}
+.best{color:var(--good);font-weight:700}
+.vlink{color:var(--accent);text-decoration:none;font-weight:500;font-size:12.5px;padding:2px 0}
+.vlink:hover{text-decoration:underline}
+.vlink:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.legend .ln{width:16px;height:0;border-top:2px dashed var(--muted)}
+
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart text{font-family:inherit;fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.chart .vlabel{fill:var(--ink-2);font-size:11.5px;font-weight:500}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .base{stroke:var(--axis);stroke-width:1}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 24px}
+.panel{display:flex;flex-direction:column;gap:8px;min-width:0}
+
+details{border-top:1px solid var(--grid);padding-top:10px}
+summary{cursor:pointer;font-size:13px;color:var(--accent);font-weight:500}
+details .tbl-wrap{margin-top:10px}
+
+#tip{position:fixed;z-index:10;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:0 6px 24px rgba(10,20,40,.16);border-radius:8px;padding:9px 11px;font-size:12px;min-width:170px;font-variant-numeric:tabular-nums}
+#tip .t{font-weight:600;margin-bottom:4px}
+#tip .r{display:flex;justify-content:space-between;gap:14px;align-items:center}
+#tip .r span:first-child{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2)}
+#tip .sw{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--c)}
+#tip hr{border:0;border-top:1px solid var(--grid);margin:5px 0}
+
+footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:22px}.period{text-align:left}}
+</style>
+
+<div class="shell">
+<nav class="side" aria-label="대시보드 메뉴">
+  <div class="logo"><span class="mk">C</span><span><b>크리에이터 소재</b><small>OLIVE YOUNG US</small></span></div>
+  <div class="navgroup">
+    <div class="navlabel">소재 성과</div>
+    <div class="tabs">
+      <a href="#shutterbrity" id="tab-sb" data-tab="sb" title="셔터브리티"><span class="ic">S</span><span class="tx">셔터브리티<small>9/16~ · 인플루언서 6명</small></span></a>
+      <a href="#tiktokshop" id="tab-ts" data-tab="ts" title="틱톡샵"><span class="ic">T</span><span class="tx">틱톡샵<small>8/26~ · 인플루언서 6명</small></span></a>
+      <a href="#influencer" id="tab-ifl" data-tab="ifl" title="인플루언서"><span class="ic">I</span><span class="tx">인플루언서<small>10/1~ · 인플루언서 2명</small></span></a>
+      <a href="#pb" id="tab-pb" data-tab="pb" title="PB 브랜드"><span class="ic">P</span><span class="tx">PB 브랜드<small>10/15 라이브 예정</small></span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">크리에이터 소재 성과</div>
+      <h1 id="pageTitle"></h1>
+    </div>
+    <div class="period" id="period"></div>
+  </header>
+
+  <div class="warn" id="warnBox" role="status" hidden></div>
+
+  <section class="progress" aria-labelledby="progTitle">
+    <h2 id="progTitle">진행 사항</h2>
+    <div class="empty">진행 사항 항목을 정리하는 중입니다. 곧 이곳에 업데이트됩니다.</div>
+  </section>
+
+  <section class="card empty-state" id="emptyState" hidden>
+    <h2>데이터 연결 준비 중</h2>
+    <p>이 탭은 셔터브리티·틱톡샵과 같은 형식(토탈 · 일자별 · 매체별)으로 구성됩니다. 소재 구분자가 정해지고 집행 데이터가 들어오면 채워집니다.</p>
+  </section>
+
+  <div class="stack" id="mainContent">
+  <div class="filters" role="group" aria-label="필터">
+    <div class="fgroup" id="monGroup"><label class="flabel" for="monSel">월</label><select class="sel" id="monSel"></select></div>
+    <div class="fgroup" id="medGroup"><label class="flabel" for="medSel">매체</label><select class="sel" id="medSel"><option value="all">전체</option><option value="meta">Meta</option><option value="tiktok">TikTok</option></select></div>
+    <div class="fgroup" id="brandGroup"><label class="flabel" for="brandSel">브랜드</label><select class="sel" id="brandSel"></select></div>
+    <div class="fgroup" id="crGroup"><label class="flabel" for="crSel">크리에이터</label><select class="sel" id="crSel"></select></div>
+    <button type="button" class="linkbtn" id="resetInf">필터 초기화</button>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section class="card">
+    <div class="sec-head">
+      <h2>인플루언서별 토탈 성과</h2>
+      <span class="sec-tools"><span class="sec-note" id="infNote"></span><button type="button" class="linkbtn" id="toggleAll"></button></span>
+    </div>
+    <div class="tbl-wrap"><table id="infTbl"></table></div>
+  </section>
+
+  <section class="card">
+    <div class="sec-head">
+      <h2>일자별 성과</h2>
+      <span class="sec-note" id="lagNote"></span>
+    </div>
+    <div class="tbl-wrap"><table id="dailyTbl"></table></div>
+  </section>
+
+  <section class="card">
+    <div class="sec-head">
+      <h2 id="grpTitle"></h2>
+      <span class="sec-note" id="grpNote"></span>
+    </div>
+    <div class="tbl-wrap"><table id="grpTbl"></table></div>
+    <div class="grid2" id="grpPanels"></div>
+  </section>
+
+  </div>
+
+  <footer>
+    <span>출처: USE_RD 광고_RAW_1 (매체 전환 기준, 비용·매출은 KRW · 마크업 포함). <span id="asofNote"></span></span>
+    <span>소재 링크는 Google Drive 원본으로 연결되며, 폴더 권한이 있는 계정에서만 열립니다.</span>
+    <span>원화 금액은 RAW의 월별 환율로 환산한 값이라 환율이 갱신되면 함께 바뀝니다 (ROAS·CVR 등 비율 지표는 영향이 거의 없음).</span>
+    <span>집행 기간은 하루 비용 5,000원 이상인 날 기준이며, 마지막 날이 집계 기준일과 같으면 '집행 중'으로 표시합니다.</span>
+    <span>사고 캠페인(growthmkt_meta_us_addtocart_asc.catalog)은 분석에서 제외했으며, 두 탭 모두 이 캠페인에 소재가 없어 제외 규모는 0원입니다.</span>
+  </footer>
+</div>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+/*DATA:BEGIN*/
+const META={"asof":"2026-10-16","through":"10-15","note":"","warn":""};
+const SB=[["09-16","meta","jinnew",159,2,3404,0,0,3,0],["09-16","meta","numberbiin",358,9,7291,0,0,3,0],["09-16","tiktok","jinnew",851,3,2333,0,0,14,0],["09-16","tiktok","numberbiin",1687,5,1218,1,44460,9,0],["09-17","meta","jinnew",3395,55,72796,3,273011,20,1],["09-17","meta","numberbiin",2320,55,52815,1,59512,4,2],["09-17","tiktok","jinnew",2319,24,33361,1,62677,32,2],["09-17","tiktok","numberbiin",4134,91,51582,1,144262,54,1],["09-18","meta","jinnew",26134,414,496809,18,1743995,111,4],["09-18","meta","numberbiin",7639,134,139973,2,463608,35,1],["09-18","tiktok","jinnew",9918,132,153632,7,733672,21,4],["09-18","tiktok","numberbiin",12155,185,134076,5,499063,53,5],["09-19","meta","jinnew",10929,158,236213,3,274927,79,5],["09-19","meta","numberbiin",6988,156,133107,0,0,37,0],["09-19","tiktok","jinnew",20551,150,301249,5,447267,92,4],["09-19","tiktok","numberbiin",6076,54,51025,5,575160,10,0],["09-20","meta","jinnew",25371,333,510130,16,3257715,154,15],["09-20","meta","numberbiin",7136,151,149495,1,60734,23,1],["09-20","tiktok","jinnew",7520,53,127474,6,723525,64,0],["09-20","tiktok","numberbiin",6618,90,81804,1,261424,41,0],["09-21","meta","eunttoz",3445,80,71696,0,0,20,0],["09-21","meta","jinnew",4950,73,109224,6,465592,32,7],["09-21","meta","numberbiin",170,5,3536,2,188261,9,3],["09-21","meta","seojae",3116,60,71124,0,0,25,0],["09-21","meta","uttie",5884,75,122222,1,131941,6,1],["09-21","tiktok","jinnew",2812,29,75334,1,125489,7,0],["09-21","tiktok","numberbiin",208,8,1672,0,0,2,0],["09-21","tiktok","seojae",3978,21,21801,2,131126,10,0],["09-21","tiktok","uttie",4884,55,28828,1,96704,10,0],["09-22","meta","eunttoz",2930,64,67207,1,117733,12,1],["09-22","meta","jinnew",7980,171,194548,3,228333,48,0],["09-22","meta","numberbiin",29,1,499,0,0,3,0],["09-22","meta","seojae",1235,33,26818,0,0,8,0],["09-22","meta","uttie",7289,92,141470,2,133789,11,2],["09-22","tiktok","jinnew",22635,202,392456,13,1339994,102,6],["09-22","tiktok","seojae",11227,56,156933,3,677842,48,3],["09-22","tiktok","uttie",16880,96,201517,10,1023160,122,3],["09-23","meta","eunttoz",2994,104,59636,2,256697,35,2],["09-23","meta","jinnew",9408,213,217669,3,269642,84,6],["09-23","meta","numberbiin",9,0,44,0,0,5,1],["09-23","meta","seojae",998,13,20906,1,94395,4,0],["09-23","meta","uttie",3513,82,63920,1,53630,7,1],["09-23","tiktok","jinnew",19670,122,279213,13,1585986,146,4],["09-23","tiktok","seojae",12643,67,162669,10,1356050,71,3],["09-23","tiktok","uttie",4714,24,50746,1,88744,9,0],["09-24","meta","eunttoz",3069,74,64258,4,481675,16,1],["09-24","meta","jinnew",5440,145,131538,8,634617,91,1],["09-24","meta","numberbiin",8,1,264,0,0,0,0],["09-24","meta","seojae",547,8,12279,0,0,2,0],["09-24","meta","uttie",3089,49,61397,3,580145,36,3],["09-24","tiktok","jinnew",7141,85,114036,6,655292,37,1],["09-24","tiktok","seojae",3369,33,53005,1,67173,23,0],["09-24","tiktok","uttie",2088,29,33537,1,27236,12,0],["09-25","meta","eunttoz",3217,70,66106,0,0,27,0],["09-25","meta","jinnew",5918,119,126491,9,1067499,64,6],["09-25","meta","numberbiin",69,0,1526,0,0,3,0],["09-25","meta","seojae",735,7,18265,0,0,2,0],["09-25","meta","uttie",2442,38,39552,0,0,11,0],["09-25","tiktok","jinnew",3915,26,58375,5,509047,29,1],["09-25","tiktok","seojae",4261,23,51934,6,743683,28,1],["09-25","tiktok","uttie",1849,19,27449,2,269588,14,0],["09-26","meta","eunttoz",1835,27,36912,2,141382,15,0],["09-26","meta","jinnew",3983,55,87100,1,210036,24,3],["09-26","meta","numberbiin",4,0,161,0,0,3,0],["09-26","meta","seojae",1110,16,29928,0,0,2,0],["09-26","meta","uttie",2057,40,45391,0,0,19,0],["09-26","tiktok","jinnew",5952,57,69935,6,721378,74,1],["09-26","tiktok","seojae",5013,37,60737,5,527263,40,0],["09-26","tiktok","uttie",1922,16,21317,2,170411,17,0],["09-27","meta","eunttoz",2782,56,55485,1,95822,16,0],["09-27","meta","jinnew",9690,149,194739,10,1254754,75,6],["09-27","meta","numberbiin",1,0,29,0,0,0,0],["09-27","meta","seojae",1612,19,37601,1,79915,6,0],["09-27","meta","uttie",2657,40,52521,1,52760,12,0],["09-27","tiktok","jinnew",4726,39,63363,2,301497,38,2],["09-27","tiktok","seojae",2423,18,33948,3,408933,21,1],["09-27","tiktok","uttie",2595,18,41826,4,358305,11,0],["09-28","meta","eunttoz",3070,44,65534,3,878735,17,0],["09-28","meta","jinnew",7369,115,157461,6,337929,86,4],["09-28","meta","seojae",0,0,0,0,0,0,0],["09-28","meta","uttie",2272,35,44995,1,175043,14,4],["09-28","tiktok","jinnew",14783,73,219239,8,762986,142,6],["09-28","tiktok","seojae",7156,17,97575,1,107640,30,2],["09-28","tiktok","uttie",10625,81,186347,8,714790,81,3],["09-29","meta","eunttoz",1099,26,22505,0,0,4,2],["09-29","meta","jinnew",3964,68,100656,0,0,64,5],["09-29","meta","numberbiin",2,0,88,0,0,0,0],["09-29","meta","seojae",0,0,0,0,0,0,0],["09-29","meta","uttie",792,19,17121,2,188940,15,1],["09-29","tiktok","jinnew",5782,20,85530,5,440176,35,1],["09-29","tiktok","seojae",3900,14,55881,3,182976,37,1],["09-29","tiktok","uttie",2296,14,39127,4,486226,23,0],["09-30","meta","eunttoz",1150,22,25175,1,74101,18,0],["09-30","meta","jinnew",5753,118,140678,8,784992,54,5],["09-30","meta","seojae",0,0,0,0,0,0,0],["09-30","meta","uttie",1342,20,24970,3,385500,8,0],["09-30","tiktok","jinnew",6006,21,106436,6,713282,64,3],["09-30","tiktok","seojae",2915,12,50233,6,656352,34,1],["09-30","tiktok","uttie",2857,26,55807,1,171661,16,1],["10-01","meta","eunttoz",341,5,6996,1,158816,4,0],["10-01","meta","jinnew",9828,156,189374,8,770384,110,2],["10-01","meta","seojae",0,0,0,0,0,0,1],["10-01","meta","uttie",673,5,11660,0,0,5,0],["10-01","tiktok","jinnew",2422,13,48896,2,306578,20,0],["10-01","tiktok","seojae",205,4,4525,1,176920,6,0],["10-01","tiktok","uttie",1251,11,27861,0,0,6,0],["10-02","meta","eunttoz",686,12,14378,1,168568,5,1],["10-02","meta","jinnew",7837,135,161915,9,1268181,137,5],["10-02","meta","uttie",1236,18,24556,2,280795,22,0],["10-02","tiktok","jinnew",3780,18,64417,3,371843,50,1],["10-02","tiktok","seojae",381,0,4247,0,0,0,0],["10-02","tiktok","uttie",940,7,17236,0,0,4,0],["10-03","meta","eunttoz",478,9,9822,0,0,6,0],["10-03","meta","jinnew",5171,92,102471,9,830358,79,6],["10-03","meta","uttie",566,13,8618,2,182840,12,2],["10-03","tiktok","jinnew",5067,27,98919,0,0,31,1],["10-03","tiktok","seojae",2099,11,27027,2,347290,17,3],["10-03","tiktok","uttie",1390,15,32865,1,62191,6,0],["10-04","meta","eunttoz",814,15,16232,0,0,4,1],["10-04","meta","jinnew",6320,68,115428,3,436393,46,1],["10-04","meta","seojae",0,0,0,0,0,0,0],["10-04","meta","uttie",1486,18,24525,1,195438,8,1],["10-04","tiktok","jinnew",1489,11,37483,0,0,11,0],["10-04","tiktok","seojae",158,0,2286,0,0,0,0],["10-04","tiktok","uttie",853,11,24463,0,0,1,0],["10-05","meta","eunttoz",593,7,10996,0,0,3,0],["10-05","meta","jinnew",5569,102,99784,5,583440,58,1],["10-05","meta","uttie",1270,34,20232,2,276877,12,0],["10-05","tiktok","jinnew",2280,11,30456,0,0,19,0],["10-05","tiktok","seojae",1709,7,16463,0,0,7,0],["10-05","tiktok","uttie",782,12,16139,0,0,12,0],["10-06","meta","eunttoz",558,8,11722,0,0,4,0],["10-06","meta","jinnew",4631,52,88618,2,238896,54,3],["10-06","meta","uttie",1065,11,15861,0,0,3,1],["10-06","tiktok","seojae",598,2,8432,0,0,3,0],["10-06","tiktok","uttie",445,6,9267,1,178435,1,0],["10-07","meta","eunttoz",1262,28,22517,0,0,10,0],["10-07","meta","jinnew",3907,60,75259,1,68854,24,1],["10-07","meta","uttie",1302,23,17776,0,0,3,0],["10-07","tiktok","seojae",1175,7,14363,1,122251,3,0],["10-07","tiktok","uttie",579,6,10718,2,321550,10,0],["10-08","meta","eunttoz",1013,18,24942,0,0,11,0],["10-08","meta","jinnew",2378,42,49745,6,497940,34,3],["10-08","meta","uttie",809,20,11228,0,0,1,0],["10-08","tiktok","seojae",455,2,4834,0,0,30,0],["10-08","tiktok","uttie",312,2,5359,0,0,2,0],["10-09","meta","eunttoz",480,9,9514,1,80638,10,0],["10-09","meta","jinnew",2438,24,43830,0,0,33,0],["10-09","meta","uttie",504,15,7104,0,0,8,0],["10-09","tiktok","seojae",96,0,1205,0,0,0,0],["10-09","tiktok","uttie",274,8,12649,0,0,0,0],["10-10","meta","eunttoz",840,10,15830,2,266237,3,1],["10-10","meta","jinnew",3155,31,61637,1,57357,27,1],["10-10","meta","uttie",656,12,9745,0,0,6,1],["10-10","tiktok","seojae",7,0,15,0,0,0,0],["10-10","tiktok","uttie",85,1,2981,0,0,1,0],["10-11","meta","eunttoz",897,30,18734,1,170771,8,2],["10-11","meta","jinnew",3966,39,75058,6,728571,39,4],["10-11","meta","uttie",1104,20,18888,0,0,0,0],["10-12","meta","eunttoz",245,2,4371,0,0,3,0],["10-12","meta","jinnew",1897,36,34641,1,129301,32,2],["10-12","meta","uttie",517,4,7784,0,0,0,0],["10-12","tiktok","seojae",440,0,5328,0,0,0,0],["10-12","tiktok","uttie",620,8,14301,0,0,2,0],["10-13","meta","eunttoz",119,4,3459.5,0,0,0,0],["10-13","meta","jinnew",1314,16,25590.7,2,302631,11,0],["10-13","meta","numberbiin",1,0,46.3,0,0,0,0],["10-13","meta","uttie",305,7,5096.5,0,0,5,0],["10-13","tiktok","seojae",68,0,494.2,0,0,0,0],["10-13","tiktok","uttie",108,3,4339.8,0,0,1,0],["10-14","meta","byvely",659,10,15567.6,1,72829.9,6,1],["10-14","meta","eunttoz",165,2,4664.1,0,0,2,0],["10-14","meta","jinnew",1944,21,32478.7,1,111711.6,9,0],["10-14","meta","numberbiin",401,9,8509.6,0,0,3,0],["10-14","meta","uttie",416,10,7459.5,0,0,3,0],["10-14","tiktok","byvely",2241,20,23891.9,1,109037.5,8,0],["10-14","tiktok","numberbiin",2438,23,28880.3,1,67195.7,10,0],["10-14","tiktok","uttie",19,0,895.8,0,0,0,0],["10-15","meta","byvely",3509,26,73034.7,1,149006,7,0],["10-15","meta","eunttoz",37,0,602.3,0,0,0,0],["10-15","meta","jinnew",726,9,14687.2,1,51851.8,2,1],["10-15","meta","numberbiin",160,2,3289.6,0,0,5,0],["10-15","meta","uttie",160,1,3382.2,0,0,3,0],["10-15","tiktok","byvely",476,0,10301.1,0,0,2,0],["10-15","tiktok","numberbiin",539,7,2903.5,0,0,0,0],["10-15","tiktok","seojae",715,2,6100.4,0,0,2,0],["10-15","tiktok","uttie",162,4,4942.1,0,0,0,0]];
+const TS=[["08-26","flashsale","leah",4439,39,51258.7,8,972043,69,0],["08-27","flashsale","leah",10462,136,237413.2,3,275960.7,67,1],["08-28","flashsale","leah",1,0,0,0,0,0,0],["08-28","laborday","danafiles",21832,150,261630.3,12,1773482.6,119,5],["08-28","laborday","jeselleleigh",23632,160,286218.9,16,1937754.1,189,0],["08-28","laborday","leah",17299,110,201214,7,803848.5,93,1],["08-29","laborday","danafiles",11683,94,159142.7,5,380051.7,85,2],["08-29","laborday","jeselleleigh",10818,67,122274.5,3,366644.5,79,0],["08-29","laborday","leah",9150,71,117799.8,5,442255.7,68,1],["08-30","laborday","danafiles",20269,154,225758.1,7,778218,64,3],["08-30","laborday","jeselleleigh",17075,92,186466.7,7,793703.7,117,5],["08-30","laborday","leah",13529,94,150802.7,9,1084971.1,76,3],["08-31","laborday","danafiles",7212,77,107735.4,3,235450.3,35,0],["08-31","laborday","jeselleleigh",5823,37,79459.8,0,0,24,0],["08-31","laborday","leah",3968,30,56045.6,3,332342.2,31,0],["09-01","laborday","danafiles",4579,47,81451.8,3,332631.4,35,0],["09-01","laborday","jeselleleigh",3812,32,65548.8,0,0,9,1],["09-01","laborday","leah",3525,39,56937.1,0,0,10,0],["09-01","usual","jeselleleigh",6114,40,71270.4,1,96949,6,0],["09-01","usual-c7d","jeselleleigh",16607,132,227851,0,0,6,0],["09-02","laborday","danafiles",11942,67,185320.5,4,612801.4,26,1],["09-02","laborday","jeselleleigh",12121,81,167158.2,2,245884,9,2],["09-02","laborday","leah",10097,72,151152.4,1,50600.4,11,2],["09-02","usual","jeselleleigh",8551,43,108181.9,2,310978.5,11,0],["09-02","usual-c7d","jeselleleigh",19086,92,218623.1,3,252852.6,61,6],["09-03","laborday","danafiles",31003,230,792879.1,6,865056.3,68,1],["09-03","laborday","jeselleleigh",11746,102,205815.5,9,1229569.3,42,3],["09-03","laborday","leah",12696,78,229215.3,3,482625.9,31,0],["09-03","usual","jeselleleigh",3323,17,49968.5,1,53358,20,0],["09-03","usual-c7d","jeselleleigh",11507,88,184352.3,0,0,21,1],["09-04","laborday","danafiles",33707,208,543315.4,12,1605574.5,108,5],["09-04","laborday","jeselleleigh",20615,113,315934,10,1358169.1,86,3],["09-04","laborday","leah",20503,89,307733,4,459940.7,90,7],["09-04","usual","jeselleleigh",632,18,17722.2,0,0,0,0],["09-04","usual-c7d","jeselleleigh",14047,188,224770.1,1,27670.6,7,0],["09-05","laborday","danafiles",28305,257,650250,5,556917,71,0],["09-05","laborday","jeselleleigh",23473,207,605666,7,1366591,52,2],["09-05","laborday","leah",7480,72,208559,5,645403,37,2],["09-05","usual","jeselleleigh",5875,37,70551,3,360899.7,39,3],["09-05","usual-c7d","jeselleleigh",12345,54,157901,1,84152.9,10,0],["09-06","laborday","danafiles",28270,255,660226,8,934335,53,1],["09-06","laborday","jeselleleigh",8055,86,217215,4,456205,9,1],["09-06","laborday","leah",14961,130,379605,1,43387,28,1],["09-06","usual","jeselleleigh",11858,78,128677,4,559443,86,1],["09-06","usual-c7d","jeselleleigh",13998,76,198554,1,142061,4,2],["09-07","laborday","danafiles",27883,290,732010,11,1191222,67,3],["09-07","laborday","jeselleleigh",7366,72,188328,3,616075,20,1],["09-07","laborday","leah",7527,56,194724,4,640988,10,2],["09-07","usual","jeselleleigh",18676,147,248155,5,966773,75,2],["09-07","usual-c7d","jeselleleigh",1382,20,30266,1,158498,2,0],["09-08","laborday","danafiles",2,0,15,0,0,9,1],["09-08","laborday","jeselleleigh",0,0,0,1,49337,1,0],["09-08","laborday","leah",0,0,0,0,0,2,0],["09-08","usual","jeselleleigh",10443,105,191482,6,826518,38,2],["09-09","laborday","danafiles",0,0,0,0,0,0,0],["09-09","usual","jeselleleigh",12553,134,247422,11,1182229,121,1],["09-09","usual-c7d","jeselleleigh",0,0,0,0,0,2,0],["09-10","laborday","danafiles",0,0,0,0,0,3,0],["09-10","laborday","jeselleleigh",0,0,0,0,0,0,0],["09-10","laborday","leah",0,0,0,0,0,0,0],["09-10","usual","jeselleleigh",16936,110,206021,14,1242311,180,2],["09-11","laborday","danafiles",0,0,0,0,0,1,0],["09-11","laborday","leah",0,0,0,0,0,0,0],["09-11","usual","jeselleleigh",18674,170,364465,13,2179091,175,3],["09-11","usual-c7d","jeselleleigh",0,0,0,0,0,5,0],["09-12","laborday","danafiles",0,0,0,0,0,2,0],["09-12","usual","jeselleleigh",22317,198,467380,10,1599815,159,6],["09-13","usual","jeselleleigh",23252,189,489151,10,1330566,139,6],["09-14","laborday","danafiles",0,0,0,0,0,0,0],["09-14","usual","jeselleleigh",11479,85,245837,15,1870490,86,2],["09-15","usual","jeselleleigh",2324,15,41489,7,1118697,27,1],["09-16","usual","jeselleleigh",2098,28,33405,2,294379,25,0],["09-17","usual","jeselleleigh",4335,63,104030,5,366754,22,4],["09-18","flashsale","alignedwithkay",10746,94,130628,3,172761,36,0],["09-18","flashsale","jeselleleigh",6822,56,86234,2,187581,16,1],["09-18","flashsale","kimkrecs_1",7739,42,78679,1,196071,9,1],["09-18","flashsale","kimkrecs_2",11190,92,156419,1,76831,10,1],["09-18","flashsale-code","alignedwithkay",10700,80,136981,2,114730,25,1],["09-18","flashsale-code","jeselleleigh",14705,108,294060,2,208528,9,0],["09-18","flashsale-code","kimkrecs_1",11161,59,109414,1,60394,21,1],["09-18","flashsale-code","kimkrecs_2",8375,61,98367,5,689714,50,1],["09-18","usual","jeselleleigh",15557,188,353535,3,254849,35,3],["09-19","flashsale","alignedwithkay",7642,83,146179,3,283349,20,1],["09-19","flashsale","jeselleleigh",3437,28,67544,1,50668,3,0],["09-19","flashsale","kimkrecs_1",9529,91,145152,3,361334,45,0],["09-19","flashsale","kimkrecs_2",5834,96,122515,1,136574,8,0],["09-19","flashsale-code","alignedwithkay",9646,82,157784,2,228062,45,2],["09-19","flashsale-code","jeselleleigh",7365,61,147646,0,0,6,0],["09-19","flashsale-code","kimkrecs_1",13603,75,183707,3,290874,43,2],["09-19","flashsale-code","kimkrecs_2",7789,52,128134,1,66086,33,0],["09-19","usual","jeselleleigh",17841,175,280137,5,556727,44,1],["09-20","flashsale","alignedwithkay",7553,76,119390,3,255610,17,3],["09-20","flashsale","jeselleleigh",4149,51,74439,0,0,10,0],["09-20","flashsale","kimkrecs_1",6090,49,94641,2,108536,12,0],["09-20","flashsale","kimkrecs_2",9354,135,216496,2,174025,9,1],["09-20","flashsale-code","alignedwithkay",14286,81,241011,5,430300,38,0],["09-20","flashsale-code","jeselleleigh",8514,45,129440,0,0,21,0],["09-20","flashsale-code","kimkrecs_1",7826,24,114300,1,81422,13,5],["09-20","flashsale-code","kimkrecs_2",13304,73,200695,7,712196,60,1],["09-20","usual","jeselleleigh",27458,298,513989,9,1133843,68,3],["09-21","flashsale","alignedwithkay",12793,73,200270,6,767510,53,1],["09-21","flashsale","jeselleleigh",7821,47,138066,1,161962,27,0],["09-21","flashsale","kimkrecs_1",16412,115,273448,7,556441,39,2],["09-21","flashsale","kimkrecs_2",6443,59,154659,1,57175,6,0],["09-21","flashsale-code","alignedwithkay",7011,63,168097,4,633436,33,4],["09-21","flashsale-code","jeselleleigh",5166,43,126286,0,0,14,0],["09-21","flashsale-code","kimkrecs_1",5857,43,160644,3,251970,13,0],["09-21","flashsale-code","kimkrecs_2",3934,30,74395,3,418224,6,1],["09-21","usual","jeselleleigh",29784,399,766560,5,862693,79,5],["09-22","flashsale","alignedwithkay",8866,69,155744,4,326777,18,1],["09-22","flashsale","jeselleleigh",5035,51,95169,4,345224,17,1],["09-22","flashsale","kimkrecs_1",12085,77,201150,1,69238,22,0],["09-22","flashsale","kimkrecs_2",8378,72,182812,0,0,10,0],["09-22","flashsale-code","alignedwithkay",3660,56,79677,0,0,1,0],["09-22","flashsale-code","jeselleleigh",5316,60,118158,3,261709,23,1],["09-22","flashsale-code","kimkrecs_1",3864,43,74131,0,0,0,0],["09-22","flashsale-code","kimkrecs_2",3313,27,63480,0,0,2,0],["09-22","usual","jeselleleigh",10103,126,198333,2,107708,36,0],["09-23","flashsale","alignedwithkay",7370,116,141396,0,0,6,1],["09-23","flashsale","jeselleleigh",4811,53,130555,1,140839,11,1],["09-23","flashsale","kimkrecs_1",5626,64,128266,2,158172,15,1],["09-23","flashsale","kimkrecs_2",0,0,0,0,0,0,0],["09-23","flashsale-code","alignedwithkay",8395,93,174934,5,714491,10,0],["09-23","flashsale-code","kimkrecs_1",7165,79,156126,2,68980,15,2],["09-23","flashsale-code","kimkrecs_2",10693,112,241201,1,79140,32,0],["09-23","usual","jeselleleigh",10514,74,147866,3,251861,63,1],["09-24","flashsale","alignedwithkay",8386,40,124569,5,708433,26,2],["09-24","flashsale","jeselleleigh",9148,62,120021,4,420656,30,2],["09-24","flashsale","kimkrecs_1",9065,58,110896,3,343947,34,0],["09-24","flashsale-code","alignedwithkay",10720,73,204510,2,191073,39,0],["09-24","flashsale-code","kimkrecs_1",11801,74,253774,7,675424,48,1],["09-24","flashsale-code","kimkrecs_2",9205,72,178279,3,436237,18,0],["09-24","usual","jeselleleigh",20303,253,216437,3,252893,26,0],["09-25","flashsale","alignedwithkay",3,0,59,0,0,0,0],["09-25","flashsale","jeselleleigh",2,0,205,0,0,0,0],["09-25","flashsale","kimkrecs_1",1,0,15,0,0,0,0],["09-25","flashsale-code","alignedwithkay",5,0,132,0,0,0,0],["09-25","flashsale-code","kimkrecs_1",2,0,15,0,0,0,0],["09-25","flashsale-code","kimkrecs_2",4,0,29,0,0,0,0],["09-25","usual","jeselleleigh",7253,63,166131,8,892903,56,3],["09-26","usual","jeselleleigh",11627,110,188959,10,987231,127,4],["09-27","usual","jeselleleigh",9725,129,216525,10,1761179,158,8],["09-28","usual","jeselleleigh",11108,97,230873,7,1575948,75,5],["09-29","usual","jeselleleigh",3105,38,74072,4,715198,48,2],["09-30","usual","jeselleleigh",6078,76,169036,4,561169,27,3],["10-01","usual","jeselleleigh",3197,56,80927,3,272100,28,1],["10-02","usual","jeselleleigh",3103,43,63151,2,154083,14,0],["10-03","usual","jeselleleigh",3362,61,111274,3,264135,21,0],["10-04","usual","jeselleleigh",3174,61,106934,3,467110,28,2],["10-05","usual","jeselleleigh",4830,71,138208,4,286000,22,3],["10-06","usual","jeselleleigh",3517,53,122116,0,0,20,0],["10-07","usual","jeselleleigh",4680,83,173837,3,481338,12,0],["10-08","usual","jeselleleigh",2177,31,89019,5,343815,20,0],["10-09","flashsale","alignedwithkay",24765,310,685050,6,597111,63,6],["10-09","usual","jeselleleigh",2512,36,101235,2,164278,3,0],["10-10","flashsale","alignedwithkay",18645,222,437854,6,701844,66,2],["10-10","usual","jeselleleigh",3060,93,117081,0,0,15,2],["10-11","flashsale","alignedwithkay",21164,306,516479,6,736193,69,2],["10-11","usual","jeselleleigh",4770,101,163521,3,209238,13,3],["10-12","flashsale","alignedwithkay",32364,628,832710,4,470813,47,5],["10-12","usual","jeselleleigh",2792,50,96525,2,288688,9,1],["10-13","flashsale","alignedwithkay",25490,475,736786.9,3,576976,80,4],["10-13","usual","jeselleleigh",1515,37,78656.3,0,0,10,0],["10-14","flashsale","alignedwithkay",26837,242,544709.9,9,1431487.2,71,4],["10-14","usual","jeselleleigh",1276,42,59737.4,2,229858.2,6,1],["10-15","flashsale","alignedwithkay",16387,264,516385.6,5,542184.5,26,3],["10-15","usual","jeselleleigh",2428,36,87135,0,0,5,0]];
+const IFL=[["10-01","addtocart_mix.rec.pur_oct","yifan",1071,23,53189,0,0,8,0],["10-01","purchase_non_oct","yifan",2838,43,76679,3,604304,8,2],["10-02","addtocart_mix.rec.pur_oct","yifan",2789,76,133498,3,193522,30,0],["10-02","purchase_non_oct","yifan",11698,217,312231,11,1725224,106,2],["10-03","addtocart_mix.rec.pur_oct","yifan",3584,114,163815,1,118604,58,1],["10-03","purchase_non_oct","yifan",8796,164,257173,6,1415200,91,2],["10-04","addtocart_mix.rec.pur_oct","yifan",3872,81,160849,3,434034,67,0],["10-04","purchase_non_oct","yifan",12180,202,321590,11,1515514,186,5],["10-05","addtocart_mix.rec.pur_oct","yifan",3833,89,159923,2,149192,23,1],["10-05","purchase_non_oct","yifan",11962,206,294224,7,886786,105,2],["10-06","addtocart_mix.rec.pur_oct","yifan",3789,134,171907,0,0,28,3],["10-06","purchase_non_oct","yifan",12379,208,323042,11,1831244,78,6],["10-07","addtocart_mix.rec.pur_oct","geena",2996,62,165282,1,86501,20,0],["10-07","addtocart_mix.rec.pur_oct","yifan",4036,80,178023,3,273774,39,0],["10-07","purchase_non_oct","geena",10474,187,272046,5,872958,37,2],["10-07","purchase_non_oct","yifan",13322,245,337081,6,595752,91,6],["10-08","addtocart_mix.rec.pur_oct","geena",0,0,0,0,0,0,0],["10-08","addtocart_mix.rec.pur_oct","yifan",0,0,0,1,86844,4,0],["10-08","purchase_non_oct","geena",0,0,0,2,226941,7,0],["10-08","purchase_non_oct","yifan",0,0,0,1,156871,31,0],["10-09","addtocart_mix.rec.pur_oct","geena",0,0,0,0,0,0,0],["10-09","addtocart_mix.rec.pur_oct","yifan",0,0,0,0,0,0,0],["10-09","purchase_non_oct","geena",0,0,0,1,66738,3,0],["10-09","purchase_non_oct","yifan",0,0,0,2,213842,29,0],["10-10","addtocart_mix.rec.pur_oct","geena",0,0,0,0,0,1,0],["10-10","addtocart_mix.rec.pur_oct","yifan",0,0,0,0,0,9,0],["10-10","purchase_non_oct","geena",0,0,0,0,0,1,0],["10-10","purchase_non_oct","yifan",0,0,0,1,101988,6,0],["10-11","addtocart_mix.rec.pur_oct","geena",0,0,0,0,0,0,0],["10-11","addtocart_mix.rec.pur_oct","yifan",0,0,0,0,0,0,0],["10-11","purchase_non_oct","geena",0,0,0,0,0,0,0],["10-11","purchase_non_oct","yifan",0,0,0,0,0,11,0],["10-12","addtocart_mix.rec.pur_oct","geena",0,0,0,0,0,0,0],["10-12","addtocart_mix.rec.pur_oct","yifan",0,0,0,0,0,2,0],["10-12","purchase_non_none","geena",4541,61,70409,3,400872,53,2],["10-12","purchase_non_none","yifan",14082,174,246363,6,1232660,123,4],["10-12","purchase_non_oct","yifan",0,0,0,0,0,0,0],["10-13","addtocart_mix.rec.pur730_oct","geena",7408,435,134841.6,0,0,63,2],["10-13","addtocart_mix.rec.pur730_oct","yifan",11856,651,255227.5,0,0,83,1],["10-13","addtocart_mix.rec.pur_oct","yifan",0,0,0,0,0,0,0],["10-13","purchase_non_none","geena",3712,58,55212.3,2,275389,23,1],["10-13","purchase_non_none","yifan",11120,96,180602.1,13,1836907,69,8],["10-13","purchase_non_oct","geena",24660,726,784107.3,17,1936864,176,9],["10-13","purchase_non_oct","yifan",5772,195,212741.1,3,318046,52,0],["10-14","addtocart_mix.rec.pur730_oct","geena",7859,490,197544.2,0,0,71,2],["10-14","addtocart_mix.rec.pur730_oct","yifan",19150,1344,524910.7,0,0,271,4],["10-14","purchase_non_none","geena",6100,81,76694.9,3,416830.7,28,2],["10-14","purchase_non_none","yifan",12441,166,181297.1,7,842455.9,108,6],["10-14","purchase_non_oct","geena",65697,1705,1958129.3,27,3971810.7,373,21],["10-14","purchase_non_oct","yifan",6761,212,255212.1,2,292849.7,61,4],["10-15","addtocart_mix.rec.pur730_oct","geena",6962,381,191706.4,1,122393.7,54,1],["10-15","addtocart_mix.rec.pur730_oct","yifan",9341,737,281420.6,0,0,200,0],["10-15","purchase_non_none","geena",7197,86,94687.2,6,791104.6,31,2],["10-15","purchase_non_none","yifan",4110,40,69899.5,6,691819.7,43,2],["10-15","purchase_non_oct","geena",24501,706,892555.1,14,2144242.1,195,14],["10-15","purchase_non_oct","yifan",5093,143,188092.5,4,557356.8,45,3]];
+/*DATA:END*/
+/* PB 브랜드 탭 데이터: 구분자 확정 후 채움 (자동 갱신 DATA 블록 밖) */
+const PB=[];
+
+
+const CFG={
+  sb:{hash:"shutterbrity",title:"셔터브리티",data:SB,
+    sub:"Meta ASC 카탈로그 · TikTok Smart+",
+    infs:[{id:"jinnew",brand:"coringco",links:[{l:"보기",u:"https://drive.google.com/file/d/1v6_8qEoCPMFT0tBd7PFpzHCguOgaIbQL/view"}],c:"var(--s1)"},{id:"uttie",brand:"coringco",links:[{l:"보기",u:"https://drive.google.com/file/d/1oNnA6N08bjlvB2XrVALNs566OQvcWAyh/view"}],c:"var(--s2)"},{id:"numberbiin",brand:"lilyeve",note:"10/13 부터 재라이브",links:[{l:"보기",u:"https://drive.google.com/file/d/1Zd9AeJZcL7n4lbNVgT-5AuWHELU4KUkJ/view"}],c:"var(--s3)"},{id:"seojae",brand:"rejuran",links:[{l:"보기",u:"https://drive.google.com/file/d/1VIscgkJGyQNR0cGKvgzWPerYrGVOT1xI/view"}],c:"var(--s4)"},{id:"eunttoz",brand:"foodology",note:"틱톡 미운영 (건기식 이슈)",links:[{l:"보기",u:"https://drive.google.com/file/d/14s7Dya2mxXU74eYUMOPmthENXSETliZS/view"}],c:"var(--s5)"},{id:"byvely",note:"10/14 라이브",links:[{l:"보기",u:"https://drive.google.com/file/d/1A4S2wTvRsClMb_rjJWjxMP4J9Z8L3_6I/view",t:"셔터브리티 블리_10월 USE몰 소재"}],c:"var(--s6)"}],
+    medFilter:true,subLabel:"매체별",grpTitle:"매체별 성과",grpCol:"매체",grpNote:"매체 필터와 관계없이 두 매체를 나란히 비교합니다",
+    groups:[{id:"meta",label:"Meta"},{id:"tiktok",label:"TikTok"}]},
+  ts:{hash:"tiktokshop",title:"틱톡샵",data:TS,
+    sub:"TikTok Smart+ · 인플루언서 6명",
+    infs:[{id:"jeselleleigh",links:[{l:"1편",u:"https://drive.google.com/file/d/1Mebfjg60VsQPtd7NZT7DqFL6bALRptKt/view",t:"노동절·상시 (jeselleleigh-1.duo)"},{l:"2편",u:"https://drive.google.com/file/d/10CM02CQdKSdQ4o9iXZAcN1li2rl6G8Bl/view",t:"플래시세일 (tiktokshop.jeselleleigh_2)"}],c:"var(--s1)"},{id:"danafiles",links:[{l:"보기",u:"https://drive.google.com/file/d/1m4ePcSOoSzsutmOy5mdaWJ8BI-x__6hl/view"}],c:"var(--s2)"},{id:"leah",links:[{l:"보기",u:"https://drive.google.com/file/d/1Brtb_85a5k2st6_loDQOLflqr7RQ-LnF/view"}],c:"var(--s3)"},{id:"alignedwithkay",links:[{l:"보기",u:"https://drive.google.com/file/d/12silNd_iOeIU1wQH6fiVJBBiGq4p73OR/view"}],c:"var(--s4)"},{id:"kimkrecs_1",links:[{l:"보기",u:"https://drive.google.com/file/d/1pvoVR6uchnjNk2itZyYQY8pZnl8Cc4TT/view"}],c:"var(--s5)"},{id:"kimkrecs_2",links:[{l:"보기",u:"https://drive.google.com/file/d/1v02k-P3Ppshbps8O8IFoP2FV6VHovIyj/view"}],c:"var(--s6)"}],
+    medFilter:false,subLabel:"광고세트별",grpTitle:"광고세트(프로모션)별 성과",grpCol:"광고세트",grpNote:"모두 TikTok 집행 · 광고세트명 purchase_non_ 이하",
+    groups:[{id:"laborday",label:"노동절"},{id:"usual",label:"상시"},{id:"usual-c7d",label:"상시 c7d"},{id:"flashsale",label:"플래시세일"},{id:"flashsale-code",label:"플래시세일 코드"}]},
+  ifl:{hash:"influencer",title:"인플루언서",data:IFL,platLabel:"전체 매체 합산",
+    sub:"인플루언서 소재 · yifan, geena",
+    infs:[{id:"yifan",links:[{l:"보기",u:"https://drive.google.com/file/d/1fKekHHyRY96w48IN7A3J1qRcZW_a56rX/view"}],c:"var(--s1)"},{id:"geena",note:"10/7 라이브",links:[{l:"보기",u:"https://drive.google.com/file/d/1J36AlmSbGynk3iPDja3J3yKpMuoDqbKv/view"}],c:"var(--s2)"}],
+    medFilter:false,subLabel:"광고세트별",grpTitle:"광고세트(최적화 목표)별 성과",grpCol:"광고세트",grpNote:"광고세트명 기준 · 새 광고세트는 자동으로 추가됩니다",
+    groups:[{id:"purchase_non_oct",label:"구매 최적화"},{id:"addtocart_mix.rec.pur_oct",label:"장바구니 최적화"}]},
+  pb:{hash:"pb",title:"PB 브랜드",data:PB,
+    sub:"10/15 라이브 예정 · 구분자 확정 후 연결",
+    infs:[],
+    medFilter:true,subLabel:"매체별",grpTitle:"매체별 성과",grpCol:"매체",grpNote:"매체 필터와 관계없이 매체를 나란히 비교합니다",
+    groups:[{id:"meta",label:"Meta"},{id:"tiktok",label:"TikTok"}]}
+};
+const MED={meta:"Meta",tiktok:"TikTok"};
+const END=META.through;
+
+const TABS=Object.keys(CFG);
+const state={tab:"sb",med:"all",month:"all",brand:{},creator:{},open:Object.fromEntries(TABS.map(k=>[k,new Set()])),infs:Object.fromEntries(TABS.map(k=>[k,new Set(CFG[k].infs.map(i=>i.id))]))};
+try{const s=JSON.parse(localStorage.getItem("creator-dash")||"null");if(s){
+  if(["all","meta","tiktok"].includes(s.med))state.med=s.med;
+  if(typeof s.month==="string"&&/^(all|\d\d)$/.test(s.month))state.month=s.month;
+  if(s.brand&&typeof s.brand==="object")state.brand=s.brand;if(s.creator&&typeof s.creator==="object")state.creator=s.creator;
+  for(const k of TABS)if(s.infs&&Array.isArray(s.infs[k])){const v=s.infs[k].filter(x=>CFG[k].infs.some(i=>i.id===x));if(v.length)state.infs[k]=new Set(v)}
+  if(CFG[s.tab])state.tab=s.tab}}catch(e){}
+const fromHash=()=>{const h=location.hash.slice(1);for(const k in CFG)if(CFG[k].hash===h)return k;return null};
+state.tab=fromHash()||state.tab;
+function save(){try{localStorage.setItem("creator-dash",JSON.stringify({tab:state.tab,med:state.med,month:state.month,brand:state.brand,creator:state.creator,infs:Object.fromEntries(TABS.map(k=>[k,[...state.infs[k]]]))}))}catch(e){}}
+
+const nf=new Intl.NumberFormat("ko-KR");
+const won=v=>nf.format(Math.round(v));
+const pct=(a,b,dp=2)=>b?(a/b*100).toFixed(dp)+"%":"–";
+const roasTxt=(r,c)=>c?nf.format(Math.round(r/c*100))+"%":"–";
+const cpc=(c,k)=>k?won(c/k):"–";
+const dLabel=d=>{const [m,dd]=d.split("-");return `${+m}/${+dd}`};
+
+const cfg=()=>CFG[state.tab];
+const infOf=id=>cfg().infs.find(i=>i.id===id);
+function months(){return [...new Set(cfg().data.map(r=>r[0].slice(0,2)))].sort()}
+function curMonth(){const m=state.month;return (m!=="all"&&months().includes(m))?m:null}
+function rows({useMed=true,grp=null,inf=null,date=null}={}){
+  const c=cfg(),sel=state.infs[state.tab],mo=curMonth();
+  const m=grp||(c.medFilter&&useMed&&state.med!=="all"?state.med:null);
+  return c.data.filter(r=>{
+    if(m&&r[1]!==m)return false;
+    if(inf){if(r[2]!==inf)return false}else if(!sel.has(r[2]))return false;
+    if(date&&r[0]!==date)return false;
+    if(mo&&r[0].slice(0,2)!==mo)return false;
+    return true;
+  });
+}
+function agg(rs){const a={imp:0,clk:0,cost:0,pur:0,rev:0,atc:0,su:0};for(const r of rs){a.imp+=r[3];a.clk+=r[4];a.cost+=r[5];a.pur+=r[6];a.rev+=r[7];a.atc+=r[8]||0;a.su+=r[9]||0}return a}
+function dates(){const mo=curMonth();return [...new Set(cfg().data.map(r=>r[0]))].filter(d=>!mo||d.slice(0,2)===mo).sort()}
+function span(rs){const byD={};for(const r of rs)byD[r[0]]=(byD[r[0]]||0)+r[5];const ds=Object.keys(byD).filter(d=>byD[d]>=5000).sort();return ds.length?{s:ds[0],e:ds[ds.length-1]}:null}
+const spanTxt=sp=>sp?`${dLabel(sp.s)} ~ ${dLabel(sp.e)}`:"–";
+const spanPill=sp=>sp?(sp.e===END?`<span class="pill on">집행 중</span>`:`<span class="pill off">종료</span>`):"";
+
+const HEAD=["노출","클릭","CTR","비용","CPC","구매","CVR","매출","ROAS"];
+function metricCells(a,opt={}){
+  const costCell=opt.maxCost!=null?`<span class="cellbar">${won(a.cost)}<i style="--w:${a.cost/opt.maxCost*100}%;--c:${opt.c||"var(--accent)"}"></i></span>`:won(a.cost);
+  const r=a.cost?a.rev/a.cost:0;
+  const roasCell=opt.maxRoas!=null?`<span class="cellbar"><span class="${opt.best?"best":""}">${roasTxt(a.rev,a.cost)}</span><i style="--w:${opt.maxRoas?r/opt.maxRoas*100:0}%;--c:${opt.c||"var(--accent)"}"></i></span>`:(opt.best?`<span class="best">${roasTxt(a.rev,a.cost)}</span>`:roasTxt(a.rev,a.cost));
+  return [nf.format(a.imp),nf.format(a.clk),pct(a.clk,a.imp),costCell,cpc(a.cost,a.clk),nf.format(a.pur),pct(a.pur,a.clk),won(a.rev),roasCell].map(v=>`<td>${v}</td>`).join("");
+}
+function linkCell(i){return (i.links||[]).map(k=>`<a class="vlink" href="${k.u}" target="_blank" rel="noopener"${k.t?` title="${k.t}"`:""}>▶ ${k.l}</a>`).join("")}
+const EXTRA_HEAD=["가입","가입<br>CPA","장바구니","장바구니<br>CPA"];
+function extraCells(a){return [nf.format(a.su),a.su?won(a.cost/a.su):"–",nf.format(a.atc),a.atc?won(a.cost/a.atc):"–"].map(v=>`<td>${v}</td>`).join("")}
+function subRows(i,hasBrand){
+  const c=cfg();if(!state.open[state.tab].has(i.id))return "";
+  const gs=groupsOf(c).filter(g=>!(c.medFilter&&state.med!=="all"&&g.id!==state.med));
+  return gs.map(g=>{const rs=rows({grp:g.id,inf:i.id}),a=agg(rs);if(!a.imp)return "";
+    return `<tr class="subrow"><td><span class="sublabel">${g.label}</span></td>${hasBrand?"<td></td>":""}<td class="l period">${spanTxt(span(rs))}</td><td></td>${metricCells(a)}${extraCells(a)}<td></td></tr>`}).join("");
+}
+function groupsOf(c){const known=c.groups.map(g=>g.id);const extra=[...new Set(c.data.map(r=>r[1]))].filter(id=>!known.includes(id)).sort().map(id=>({id,label:id}));return [...c.groups,...extra]}
+function nameCell(i){return `<span class="name" style="--c:${i.c}"><span class="sw"></span>${i.id}</span>`}
+
+// ---------- tooltip / svg helpers ----------
+const tip=document.getElementById("tip");
+function showTip(html,ev){tip.innerHTML=html;tip.hidden=false;const pad=14,w=tip.offsetWidth,h=tip.offsetHeight;let x=ev.clientX+pad,y=ev.clientY+pad;if(x+w>innerWidth-8)x=ev.clientX-w-pad;if(y+h>innerHeight-8)y=ev.clientY-h-pad;tip.style.left=Math.max(8,x)+"px";tip.style.top=Math.max(8,y)+"px"}
+function hideTip(){tip.hidden=true}
+const tr=(l,v,c)=>`<div class="r"><span>${c?`<i class="sw" style="--c:${c}"></i>`:""}${l}</span><b>${v}</b></div>`;
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs={},parent){const e=document.createElementNS(NS,tag);for(const k in attrs){const v=String(attrs[k]);if(v.startsWith("var("))e.style.setProperty(k,v);else e.setAttribute(k,v)}if(parent)parent.appendChild(e);return e}
+function niceTicks(max,n=4){if(max<=0)return{max:1,ticks:[0,1]};const raw=max/n,p=Math.pow(10,Math.floor(Math.log10(raw)));const step=[1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw);const top=Math.ceil(max/step)*step;const ticks=[];for(let v=0;v<=top+1e-9;v+=step)ticks.push(v);return{max:top,ticks}}
+function xLabels(svg,DATES,x,H,plotW){const every=Math.max(1,Math.ceil(DATES.length*38/plotW));DATES.forEach((d,k)=>{if(k%every&&k!==DATES.length-1)return;if(k===DATES.length-1&&k%every&&(k%every)<every/2)return;const t=el("text",{x:x(k),y:H-8,"text-anchor":"middle"},svg);t.textContent=dLabel(d)})}
+
+// ---------- filters ----------
+document.getElementById("infTbl").addEventListener("click",e=>{const b=e.target.closest(".tg");if(!b)return;const s=state.open[state.tab],id=b.dataset.inf;
+  s.has(id)?s.delete(id):s.add(id);render();const nb=document.getElementById(b.id);if(nb)nb.focus()});
+document.getElementById("toggleAll").addEventListener("click",()=>{const s=state.open[state.tab],ids=cfg().infs.filter(i=>state.infs[state.tab].has(i.id)).map(i=>i.id);
+  const allOpen=ids.every(id=>s.has(id));state.open[state.tab]=allOpen?new Set():new Set(ids);render()});
+document.getElementById("monSel").addEventListener("change",e=>{state.month=e.target.value;save();render()});
+document.getElementById("medSel").addEventListener("change",e=>{state.med=e.target.value;save();render()});
+document.getElementById("brandSel").addEventListener("change",e=>{state.brand[state.tab]=e.target.value;state.creator[state.tab]="all";save();render()});
+document.getElementById("crSel").addEventListener("change",e=>{state.creator[state.tab]=e.target.value;save();render()});
+document.getElementById("resetInf").addEventListener("click",()=>{state.month="all";state.med="all";state.brand[state.tab]="all";state.creator[state.tab]="all";save();render()});
+addEventListener("hashchange",()=>{const t=fromHash();if(t&&t!==state.tab){state.tab=t;save();render()}});
+
+// ---------- render ----------
+function render(){
+  const c=cfg();
+  if(location.hash.slice(1)!==c.hash)history.replaceState(null,"","#"+c.hash);
+  document.querySelectorAll(".tabs a").forEach(a=>a.dataset.tab===state.tab?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
+  document.getElementById("pageTitle").textContent=c.title+" 성과 대시보드";
+  const isEmpty=!c.data.length;
+  document.getElementById("emptyState").hidden=!isEmpty;
+  document.getElementById("mainContent").hidden=isEmpty;
+  if(isEmpty){document.getElementById("period").innerHTML=c.sub;document.getElementById("warnBox").hidden=true;return}
+  const ds=dates();document.getElementById("period").innerHTML=`<b>2026.${ds[0].replace("-",".")} – ${ds[ds.length-1].replace("-",".")}</b> (PT)<br>${c.sub}`;
+  document.getElementById("lagNote").textContent=`${dLabel(END)}은 전환이 아직 다 잡히지 않았을 수 있습니다`;
+  document.getElementById("asofNote").textContent=`${META.asof} 업데이트본 반영, ${dLabel(END)}까지 집계`+(META.note?` (${META.note})`:"")+".";
+  const wb=document.getElementById("warnBox");wb.hidden=!META.warn;wb.textContent=META.warn||"";
+  document.getElementById("medGroup").hidden=!c.medFilter;
+  const ms=months(),mo=curMonth();
+  document.getElementById("monGroup").hidden=ms.length<2;
+  const opt=(v,l,cur)=>`<option value="${v}"${v===cur?" selected":""}>${l}</option>`;
+  document.getElementById("monSel").innerHTML=[["all","전체"],...ms.map(m=>[m,(+m)+"월"])].map(([v,l])=>opt(v,l,mo||"all")).join("");
+  document.getElementById("medSel").value=state.med;
+  const brands=[...new Set(c.infs.map(i=>i.brand).filter(Boolean))];
+  let br=state.brand[state.tab]||"all";if(br!=="all"&&!brands.includes(br))br="all";
+  document.getElementById("brandGroup").hidden=!brands.length;
+  document.getElementById("brandSel").innerHTML=opt("all","전체",br)+brands.map(b=>opt(b,b,br)).join("");
+  const pool=c.infs.filter(i=>br==="all"||i.brand===br);
+  let cr=state.creator[state.tab]||"all";if(cr!=="all"&&!pool.some(i=>i.id===cr))cr="all";
+  document.getElementById("crSel").innerHTML=opt("all","전체",cr)+pool.map(i=>opt(i.id,i.id+(i.brand?" ("+i.brand+")":""),cr)).join("");
+  state.infs[state.tab]=new Set(cr==="all"?pool.map(i=>i.id):[cr]);
+  const sel=state.infs[state.tab];
+  const active=c.infs.filter(i=>sel.has(i.id));
+
+  const t=agg(rows());
+  document.getElementById("kpis").innerHTML=[
+    ["비용",won(t.cost),"원"],["CPC",cpc(t.cost,t.clk),"원"],["구매",nf.format(t.pur),"건"],
+    ["CVR",pct(t.pur,t.clk),""],["매출",won(t.rev),"원"],["ROAS",roasTxt(t.rev,t.cost),"",true]
+  ].map(([k,v,u,hl])=>`<div class="kpi${hl?" hl":""}"><div class="k">${k}</div><div class="v">${v}${u?`<small>${u}</small>`:""}</div></div>`).join("");
+
+  // influencer table
+  const infAggs=active.map(i=>({i,a:agg(rows({inf:i.id})),sp:span(rows({inf:i.id}))})).filter(x=>x.a.imp>0).sort((x,y)=>y.a.cost-x.a.cost);
+  const maxCost=Math.max(...infAggs.map(x=>x.a.cost),1),maxRoas=Math.max(...infAggs.map(x=>x.a.cost?x.a.rev/x.a.cost:0),0.01);
+  const bestId=infAggs.length>1?infAggs.reduce((b,x)=>(x.a.rev/x.a.cost>b.a.rev/b.a.cost?x:b)).i.id:null;
+  const hasBrand=c.infs.some(i=>i.brand);
+  document.getElementById("infTbl").innerHTML=`<thead><tr><th>인플루언서</th>${hasBrand?`<th class="l">브랜드</th>`:""}<th class="l">집행 기간</th><th class="l">소재</th>${HEAD.map(h=>`<th>${h}</th>`).join("")}${EXTRA_HEAD.map(h=>`<th>${h}</th>`).join("")}<th class="l">비고</th></tr></thead><tbody>`+
+    infAggs.map(x=>`<tr${state.open[state.tab].has(x.i.id)?` class="open"`:""}><td><span class="namewrap"><button type="button" class="tg" id="tg-${state.tab}-${x.i.id}" data-inf="${x.i.id}" aria-expanded="${state.open[state.tab].has(x.i.id)}" aria-label="${x.i.id} ${c.subLabel} 성과 펼치기"></button>${nameCell(x.i)}</span></td>${hasBrand?`<td class="l brandcell">${x.i.brand||""}</td>`:""}<td class="l period">${spanTxt(x.sp)}${spanPill(x.sp)}</td><td class="l">${linkCell(x.i)}</td>${metricCells(x.a,{best:x.i.id===bestId})}${extraCells(x.a)}<td class="l note">${(x.i.note||"").split(" / ").map(s=>`<div>${s}</div>`).join("")}</td></tr>`+subRows(x.i,hasBrand)).join("")+
+    `<tr class="total"><td>Total</td>${hasBrand?"<td></td>":""}<td class="l period">${spanTxt(span(rows()))}</td><td></td>${metricCells(t)}${extraCells(t)}<td></td></tr></tbody>`;
+  document.getElementById("infNote").textContent=(curMonth()?(+curMonth())+"월 · ":"")+(c.medFilter?(state.med==="all"?"Meta + TikTok 합산":MED[state.med]+"만"):(c.platLabel||"TikTok"))+" · 비용 순 · 초록 굵은 글씨는 ROAS 최고 · ▸를 누르면 "+c.subLabel+" 성과가 펼쳐집니다";
+  const allOpen=infAggs.length&&infAggs.every(x=>state.open[state.tab].has(x.i.id));
+  document.getElementById("toggleAll").textContent=allOpen?"모두 접기":c.subLabel+" 모두 펼치기";
+
+  const DATES=dates();
+  document.getElementById("dailyTbl").innerHTML=`<thead><tr><th>일자</th>${HEAD.map(h=>`<th>${h}</th>`).join("")}${EXTRA_HEAD.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>`+
+    DATES.map(d=>`<tr><td>${dLabel(d)}</td>${(a=>metricCells(a)+extraCells(a))(agg(rows({date:d})))}</tr>`).join("")+`<tr class="total"><td>Total</td>${metricCells(t)}${extraCells(t)}</tr></tbody>`;
+
+  // group section
+  document.getElementById("grpTitle").textContent=c.grpTitle;
+  document.getElementById("grpNote").textContent=c.grpNote;
+  const gAggs=groupsOf(c).map(g=>({g,a:agg(rows({useMed:false,grp:g.id})),sp:span(rows({useMed:false,grp:g.id}))})).filter(x=>x.a.imp>0);
+  const all=agg(rows({useMed:false}));
+  const gMaxCost=Math.max(...gAggs.map(x=>x.a.cost),1),gMaxRoas=Math.max(...gAggs.map(x=>x.a.cost?x.a.rev/x.a.cost:0),0.01);
+  document.getElementById("grpTbl").innerHTML=`<thead><tr><th>${c.grpCol}</th><th class="l">집행 기간</th>${HEAD.map(h=>`<th>${h}</th>`).join("")}${EXTRA_HEAD.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>`+
+    gAggs.map(x=>`<tr><td>${x.g.label}${c.medFilter?"":`<span class="sub">${x.g.id}</span>`}</td><td class="l">${spanTxt(x.sp)}</td>${metricCells(x.a)}${extraCells(x.a)}</tr>`).join("")+
+    `<tr class="total"><td>Total</td><td class="l">${spanTxt(span(rows({useMed:false})))}</td>${metricCells(all)}${extraCells(all)}</tr></tbody>`;
+  drawGroups(active,gAggs.map(x=>x.g));
+}
+
+function drawGroups(active,groups){
+  const wrap=document.getElementById("grpPanels");wrap.innerHTML="";
+  const c=cfg(),data={};let gmax=0;
+  groups.forEach(g=>{data[g.id]=active.map(i=>({i,a:agg(rows({useMed:false,grp:g.id,inf:i.id}))})).filter(x=>x.a.cost>0).sort((a,b)=>b.a.cost-a.a.cost);
+    data[g.id].forEach(x=>gmax=Math.max(gmax,x.a.rev/x.a.cost*100))});
+  const {max}=niceTicks(gmax);
+  groups.forEach(g=>{
+    const p=document.createElement("div");p.className="panel";p.innerHTML=`<h3>${g.label} · 인플루언서별 ROAS</h3><div class="chart"></div>`;wrap.appendChild(p);
+    const box=p.querySelector(".chart");
+    const list=data[g.id];const W=Math.max(box.clientWidth,260),rowH=32,m={l:104,r:54,t:4,b:4},H=m.t+m.b+rowH*Math.max(list.length,1);
+    const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,height:H,role:"img","aria-label":g.label+" 인플루언서별 ROAS 막대"},box);
+    const xs=v=>m.l+(W-m.l-m.r)*v/max;
+    el("line",{x1:m.l,x2:m.l,y1:m.t,y2:H-m.b,class:"base"},svg);
+    if(!list.length){const t=el("text",{x:m.l+8,y:H/2+4},svg);t.textContent="선택한 인플루언서의 집행 없음";return}
+    list.forEach((x,k)=>{const r=x.a.rev/x.a.cost*100,cy=m.t+rowH*k+rowH/2,bh=14;
+      const lab=el("text",{x:m.l-8,y:cy+4,"text-anchor":"end",class:"vlabel"},svg);lab.textContent=x.i.id;
+      const w=Math.max(xs(r)-m.l,2);
+      el("path",{d:`M${m.l},${cy-bh/2}h${Math.max(w-4,0)}a4,4 0 0 1 4,4v${bh-8}a4,4 0 0 1 -4,4h${-Math.max(w-4,0)}z`,fill:x.i.c},svg);
+      const v=el("text",{x:m.l+w+6,y:cy+4,class:"vlabel"},svg);v.textContent=nf.format(Math.round(r))+"%";
+      const hit=el("rect",{x:0,y:cy-rowH/2,width:W,height:rowH,fill:"transparent"},svg);
+      hit.addEventListener("pointermove",ev=>showTip(`<div class="t">${g.label} · ${x.i.id}</div>`+tr("비용",won(x.a.cost)+"원")+tr("CPC",cpc(x.a.cost,x.a.clk)+"원")+tr("구매",nf.format(x.a.pur)+"건")+tr("CVR",pct(x.a.pur,x.a.clk))+tr("매출",won(x.a.rev)+"원")+tr("ROAS",roasTxt(x.a.rev,x.a.cost)),ev));
+      hit.addEventListener("pointerleave",hideTip);
+    });
+  });
+}
+
+render();
+let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(render,120)});
+</script>
+
+</body></html>
