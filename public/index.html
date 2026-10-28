@@ -231,12 +231,12 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     <div class="tbl-wrap"><table id="sumTotTbl"></table></div>
   </section>
   <section class="card">
-    <div class="sec-head"><h2>월별 성과</h2><span class="sec-tools"><span class="sec-note">콘텐츠별 누적 · 월 필터와 관계없이 전체 월 표시</span><label class="flabel" for="sumMetric">지표</label><select class="sel" id="sumMetric"><option value="cost">광고비</option><option value="rev">매출</option><option value="pur">구매</option></select></span></div>
+    <div class="sec-head"><h2>월별 성과</h2><span class="sec-tools"><span class="sec-note">막대: 콘텐츠별 누적 · 선: ROAS · 월 필터와 관계없이 전체 월 표시</span><label class="flabel" for="sumMetric">지표</label><select class="sel" id="sumMetric"><option value="cost">광고비</option><option value="rev">매출</option><option value="pur">구매</option></select></span></div>
     <div class="legend" id="sumLegend"></div>
     <div class="chart" id="sumChart"></div>
-    <div class="sec-head"><h3>월별 ROAS · 콘텐츠별 꺾은선</h3><span class="sec-note">점선은 전체 · 월에 마우스를 올리면 콘텐츠별 ROAS</span></div>
-    <div class="legend" id="sumRoasLegend"></div>
-    <div class="chart" id="sumRoasChart"></div>
+    <div class="sec-head"><h3>콘텐츠별 광고비 · 매출 비중</h3><span class="sec-note">월·매체 필터 적용 · 콘텐츠 필터와 관계없이 4개 콘텐츠 비교 · 매출 비중이 광고비 비중보다 크면 효율 우위</span></div>
+    <div class="chart" id="sumShare"></div>
+    <div class="tbl-wrap"><table id="sumShareTbl"></table></div>
     <div class="tbl-wrap"><table id="sumMonTbl"></table></div>
   </section>
   <section class="card">
@@ -508,7 +508,7 @@ function renderSummary(){
   const mBase=sumSel({mo:null}),ms=[...new Set(mBase.map(x=>x.d.slice(0,2)))].sort();
   document.getElementById("sumMonTbl").innerHTML=fullHead(`<th>월</th>`)+`<tbody>`+ms.map(m=>`<tr><td>${+m}월</td>${(a=>metricCells(a)+extraCells(a))(aggX(mBase.filter(x=>x.d.slice(0,2)===m)))}</tr>`).join("")+`<tr class="total"><td>Total</td>${(a=>metricCells(a)+extraCells(a))(aggX(mBase))}</tr></tbody>`;
   drawSumChart(mBase,ms);
-  drawSumRoas(mBase,ms);
+  drawShare();
 
   // 콘텐츠별
   const cAggs=CONT.filter(k=>state.cont==="all"||k.id===state.cont).map(k=>{const xs=base.filter(x=>x.k===k.id);const a=aggX(xs);return {k,a,sp:spanX(xs),n:new Set(xs.filter(x=>x.r[5]>0).map(x=>x.cr)).size}}).filter(x=>x.a.imp>0);
@@ -529,51 +529,62 @@ function drawSumChart(mBase,ms){
   const box=document.getElementById("sumChart");box.innerHTML="";
   const met=state.sumMetric||"cost",unit=met==="pur"?"건":"원",mLabel={cost:"광고비",rev:"매출",pur:"구매"}[met];
   const conts=CONT.filter(k=>state.cont==="all"||k.id===state.cont);
-  document.getElementById("sumLegend").innerHTML=conts.map(k=>`<span><span class="sw" style="--c:${k.c}"></span>${k.label}</span>`).join("");
-  const data=ms.map(m=>{const parts=conts.map(k=>({k,v:aggX(mBase.filter(x=>x.k===k.id&&x.d.slice(0,2)===m))[met]}));return {m,parts,tot:parts.reduce((s,p)=>s+p.v,0)}});
+  document.getElementById("sumLegend").innerHTML=conts.map(k=>`<span><span class="sw" style="--c:${k.c}"></span>${k.label} ${mLabel}</span>`).join("")+`<span><span class="ln" style="border-top:2px solid var(--ink)"></span>ROAS (오른쪽 축)</span>`;
+  const data=ms.map(m=>{const mx=mBase.filter(x=>x.d.slice(0,2)===m);const parts=conts.map(k=>{const a=aggX(mx.filter(x=>x.k===k.id));return {k,v:a[met],roas:a.cost?a.rev/a.cost*100:null}});const a=aggX(mx);return {m,parts,tot:parts.reduce((s,p)=>s+p.v,0),roas:a.cost?a.rev/a.cost*100:null}});
   const {max,ticks}=niceTicks(Math.max(...data.map(d=>d.tot),1));
-  const W=Math.max(box.clientWidth,300),H=300,mg={l:64,r:12,t:24,b:30},pw=W-mg.l-mg.r,ph=H-mg.t-mg.b;
-  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,height:H,role:"img","aria-label":"월별 콘텐츠별 "+mLabel+" 누적 막대"},box);
-  const y=v=>mg.t+ph-ph*v/max;
+  const rv=data.map(d=>d.roas).filter(v=>v!=null),nT=ticks.length-1,rRaw=Math.max(...rv,100)/nT,rP=Math.pow(10,Math.floor(Math.log10(rRaw))),rStep=[1,2,2.5,5,10].map(m=>m*rP).find(s=>s>=rRaw),R={max:rStep*nT,ticks:ticks.map((_,i)=>rStep*i)};
+  const W=Math.max(box.clientWidth,300),H=320,mg={l:64,r:56,t:28,b:30},pw=W-mg.l-mg.r,ph=H-mg.t-mg.b;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,height:H,role:"img","aria-label":"월별 콘텐츠별 "+mLabel+" 누적 막대와 ROAS 꺾은선"},box);
+  const y=v=>mg.t+ph-ph*v/max,yr=v=>mg.t+ph-ph*v/R.max;
   const tick=v=>met==="pur"?nf.format(v):(v>=1e8?(v/1e8).toFixed(v%1e8?1:0)+"억":v>=1e4?nf.format(Math.round(v/1e4))+"만":nf.format(v));
   ticks.forEach(tv=>{el("line",{x1:mg.l,x2:W-mg.r,y1:y(tv),y2:y(tv),class:tv?"gl":"base"},svg);const tx=el("text",{x:mg.l-8,y:y(tv)+4,"text-anchor":"end"},svg);tx.textContent=tick(tv)});
-  const step=pw/Math.max(ms.length,1),bw=Math.min(88,step*0.5);
-  data.forEach((d,i)=>{const cx=mg.l+step*i+step/2,x0=cx-bw/2;let acc=0;
+  R.ticks.forEach(tv=>{const tx=el("text",{x:W-mg.r+8,y:yr(tv)+4,"text-anchor":"start"},svg);tx.textContent=nf.format(tv)+"%"});
+  const step=pw/Math.max(ms.length,1),bw=Math.min(88,step*0.45),cxOf=i=>mg.l+step*i+step/2;
+  data.forEach((d,i)=>{const cx=cxOf(i),x0=cx-bw/2;let acc=0;
     const vis=d.parts.filter(p=>p.v>0);
     vis.forEach((p,j)=>{const yb=y(acc),yt=y(acc+p.v);acc+=p.v;
       const h=Math.max(yb-yt-(j?2:0),1),top=j===vis.length-1,r=top?Math.min(4,h):0;
-      el("path",{d:`M${x0},${yt+h}V${yt+r}a${r},${r} 0 0 1 ${r},${-r}H${x0+bw-r}a${r},${r} 0 0 1 ${r},${r}V${yt+h}Z`,fill:p.k.c},svg);
-      const hit=el("rect",{x:x0-6,y:yt,width:bw+12,height:Math.max(h,6),fill:"transparent"},svg);
-      hit.addEventListener("pointermove",ev=>showTip(`<div class="t">${+d.m}월 · ${p.k.label}</div>`+tr(mLabel,nf.format(Math.round(p.v))+unit,p.k.c)+tr("월 합계 중 비중",pct(p.v,d.tot,1))+"<hr>"+tr("월 합계",nf.format(Math.round(d.tot))+unit),ev));
-      hit.addEventListener("pointerleave",hideTip);
-    });
+      el("path",{d:`M${x0},${yt+h}V${yt+r}a${r},${r} 0 0 1 ${r},${-r}H${x0+bw-r}a${r},${r} 0 0 1 ${r},${r}V${yt+h}Z`,fill:p.k.c},svg)});
     const lb=el("text",{x:cx,y:y(d.tot)-7,"text-anchor":"middle",class:"vlabel"},svg);lb.textContent=nf.format(Math.round(d.tot))+unit;
     const ml=el("text",{x:cx,y:H-10,"text-anchor":"middle"},svg);ml.textContent=(+d.m)+"월";
   });
-}
-
-function drawSumRoas(mBase,ms){
-  const box=document.getElementById("sumRoasChart");box.innerHTML="";
-  const conts=CONT.filter(k=>state.cont==="all"||k.id===state.cont);
-  const roasOf=xs=>{const a=aggX(xs);return a.cost?a.rev/a.cost*100:null};
-  const series=conts.map(k=>({label:k.label,c:k.c,pts:ms.map(m=>roasOf(mBase.filter(x=>x.k===k.id&&x.d.slice(0,2)===m)))}));
-  if(conts.length>1)series.push({label:"전체",c:"var(--ink)",dash:"5 4",pts:ms.map(m=>roasOf(mBase.filter(x=>x.d.slice(0,2)===m)))});
-  document.getElementById("sumRoasLegend").innerHTML=series.map(s=>s.dash?`<span><span class="ln"></span>${s.label}</span>`:`<span><span class="sw" style="--c:${s.c}"></span>${s.label}</span>`).join("");
-  const vals=series.flatMap(s=>s.pts.filter(v=>v!=null));
-  const {max,ticks}=niceTicks(Math.max(...vals,100));
-  const W=Math.max(box.clientWidth,300),H=260,mg={l:64,r:12,t:14,b:30},pw=W-mg.l-mg.r,ph=H-mg.t-mg.b;
-  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,height:H,role:"img","aria-label":"월별 콘텐츠별 ROAS 꺾은선"},box);
-  const y=v=>mg.t+ph-ph*v/max,step=pw/Math.max(ms.length,1),x=i=>mg.l+step*i+step/2;
-  ticks.forEach(tv=>{el("line",{x1:mg.l,x2:W-mg.r,y1:y(tv),y2:y(tv),class:tv?"gl":"base"},svg);const tx=el("text",{x:mg.l-8,y:y(tv)+4,"text-anchor":"end"},svg);tx.textContent=nf.format(tv)+"%"});
-  ms.forEach((m,i)=>{const t=el("text",{x:x(i),y:H-10,"text-anchor":"middle"},svg);t.textContent=(+m)+"월"});
+  // ROAS 꺾은선 (선택한 콘텐츠 합산 기준)
+  let dd="",pen=false;data.forEach((d,i)=>{if(d.roas==null){pen=false;return}dd+=(pen?"L":"M")+cxOf(i)+","+yr(d.roas);pen=true});
+  const ln=el("path",{d:dd,fill:"none","stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);ln.style.stroke="var(--ink)";
+  data.forEach((d,i)=>{if(d.roas==null)return;const c=el("circle",{cx:cxOf(i),cy:yr(d.roas),r:4.5,"stroke-width":2},svg);c.style.fill="var(--ink)";c.style.stroke="var(--surface)";
+    const t=el("text",{x:cxOf(i)+bw/2+8,y:yr(d.roas)+4,class:"vlabel"},svg);t.textContent="ROAS "+nf.format(Math.round(d.roas))+"%";t.style.cssText="paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round;fill:var(--ink);font-weight:600"});
   const cross=el("line",{x1:0,x2:0,y1:mg.t,y2:mg.t+ph,class:"base",visibility:"hidden"},svg);
-  series.forEach(s=>{let d="",pen=false;s.pts.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?"L":"M")+x(i)+","+y(v);pen=true});
-    const p=el("path",{d,fill:"none","stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);p.style.stroke=s.c;if(s.dash)p.setAttribute("stroke-dasharray",s.dash);
-    s.pts.forEach((v,i)=>{if(v==null)return;const c=el("circle",{cx:x(i),cy:y(v),r:4,"stroke-width":2},svg);c.style.fill=s.c;c.style.stroke="var(--surface)"})});
-  ms.forEach((m,i)=>{const hit=el("rect",{x:x(i)-step/2,y:mg.t,width:step,height:ph,fill:"transparent"},svg);
-    hit.addEventListener("pointermove",ev=>{cross.setAttribute("x1",x(i));cross.setAttribute("x2",x(i));cross.setAttribute("visibility","visible");
-      showTip(`<div class="t">${+m}월 ROAS</div>`+series.map(s=>tr(s.label,s.pts[i]==null?"–":nf.format(Math.round(s.pts[i]))+"%",s.dash?null:s.c)).join(""),ev)});
+  data.forEach((d,i)=>{const hit=el("rect",{x:cxOf(i)-step/2,y:mg.t,width:step,height:ph,fill:"transparent"},svg);
+    hit.addEventListener("pointermove",ev=>{cross.setAttribute("x1",cxOf(i));cross.setAttribute("x2",cxOf(i));cross.setAttribute("visibility","visible");
+      showTip(`<div class="t">${+d.m}월</div>`+d.parts.filter(p=>p.v>0).map(p=>tr(p.k.label,nf.format(Math.round(p.v))+unit+(p.roas!=null?" · ROAS "+nf.format(Math.round(p.roas))+"%":""),p.k.c)).join("")+"<hr>"+tr(mLabel+" 합계",nf.format(Math.round(d.tot))+unit)+tr("ROAS",d.roas==null?"–":nf.format(Math.round(d.roas))+"%"),ev)});
     hit.addEventListener("pointerleave",()=>{cross.setAttribute("visibility","hidden");hideTip()})});
+}
+function drawShare(){
+  const box=document.getElementById("sumShare");box.innerHTML="";
+  const mo=curMonth(),base=ALL.filter(x=>(state.med==="all"||x.med===state.med)&&(!mo||x.d.slice(0,2)===mo));
+  const rows=CONT.map(k=>{const a=aggX(base.filter(x=>x.k===k.id));return {k,cost:a.cost,rev:a.rev}});
+  const tot={cost:rows.reduce((s,r)=>s+r.cost,0),rev:rows.reduce((s,r)=>s+r.rev,0)};
+  const sh=(r,m)=>tot[m]?r[m]/tot[m]:0;
+  const W=Math.max(box.clientWidth,300),lw=56,bh=30,gap=14,H=bh*2+gap+8,bwid=W-lw-8;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,height:H,role:"img","aria-label":"콘텐츠별 광고비·매출 비중 막대"},box);
+  [["cost","광고비"],["rev","매출"]].forEach(([m,lab],i)=>{
+    const y0=4+i*(bh+gap);
+    const lt=el("text",{x:0,y:y0+bh/2+4,class:"vlabel"},svg);lt.textContent=lab;
+    const cid="shclip"+i,defs=el("defs",{},svg),cp=el("clipPath",{id:cid},defs);el("rect",{x:lw,y:y0,width:bwid,height:bh,rx:4},cp);
+    const g=el("g",{"clip-path":`url(#${cid})`},svg);
+    let x=lw;const vis=rows.filter(r=>r[m]>0);
+    vis.forEach((r,j)=>{const w=bwid*sh(r,m),ww=Math.max(w-(j<vis.length-1?2:0),1);
+      el("rect",{x,y:y0,width:ww,height:bh,fill:r.k.c},g);
+      if(ww>64){const t=el("text",{x:x+8,y:y0+bh/2+4},svg);t.textContent=r.k.label+" "+(sh(r,m)*100).toFixed(0)+"%";t.style.cssText="fill:"+(r.k.id==="pb"?"var(--ink)":"#fff")+";font-size:11.5px;font-weight:600"}
+      const hit=el("rect",{x,y:y0,width:Math.max(w,6),height:bh,fill:"transparent"},svg);
+      hit.addEventListener("pointermove",ev=>showTip(`<div class="t">${r.k.label} · ${lab}</div>`+tr(lab,won(r[m])+"원",r.k.c)+tr("비중",(sh(r,m)*100).toFixed(1)+"%")+"<hr>"+tr("광고비 비중",(sh(r,"cost")*100).toFixed(1)+"%")+tr("매출 비중",(sh(r,"rev")*100).toFixed(1)+"%"),ev));
+      hit.addEventListener("pointerleave",hideTip);
+      x+=w;});
+  });
+  const dTxt=v=>(v>0?"+":"")+v.toFixed(1)+"%p";
+  document.getElementById("sumShareTbl").innerHTML=`<thead><tr><th>콘텐츠</th><th>광고비</th><th>광고비 비중</th><th>매출</th><th>매출 비중</th><th>비중 차이<br>(매출−광고비)</th><th>ROAS</th></tr></thead><tbody>`+
+    rows.filter(r=>r.cost>0||r.rev>0).map(r=>{const d=(sh(r,"rev")-sh(r,"cost"))*100;return `<tr><td><span class="name" style="--c:${r.k.c}"><span class="sw"></span>${r.k.label}</span></td><td>${won(r.cost)}</td><td>${(sh(r,"cost")*100).toFixed(1)}%</td><td>${won(r.rev)}</td><td>${(sh(r,"rev")*100).toFixed(1)}%</td><td${d>=1?' class="best"':''}>${dTxt(d)}</td><td>${roasTxt(r.rev,r.cost)}</td></tr>`}).join("")+
+    `<tr class="total"><td>Total</td><td>${won(tot.cost)}</td><td>100%</td><td>${won(tot.rev)}</td><td>100%</td><td>–</td><td>${roasTxt(tot.rev,tot.cost)}</td></tr></tbody>`;
 }
 
 function drawGroups(active,groups){
